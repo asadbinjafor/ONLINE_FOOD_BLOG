@@ -48,7 +48,7 @@ class AuthController
             return;
         }
         Auth::login($user);
-        if ($remember) {
+        if ($remember && REMEMBER_SECRET !== '') {
             $token = bin2hex(random_bytes(32));
             $this->users->setRememberToken((int) $user['id'], $token);
             Auth::setRemember((int) $user['id'], $token);
@@ -63,10 +63,7 @@ class AuthController
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
         $confirm = $_POST['password_confirm'] ?? '';
-        $role = $_POST['role'] ?? 'member';
-        if (!in_array($role, ['admin', 'member'], true)) {
-            $role = 'member';
-        }
+        $role = 'member';
         $errors = [];
         if ($name === '') {
             $errors['name'] = 'Name is required.';

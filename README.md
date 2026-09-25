@@ -14,7 +14,7 @@ The system works like a small food content platform with two registered roles pl
 
 **Typical workflow:** Admin adds restaurants and menu items → visitors and members browse listings → a member posts a review or Food Experience story → admin can remove inappropriate content or member accounts if needed.
 
-This project was built as **Web Technologies — Project 03**, following a shared database schema and PHP MVC structure with security, validation, and AJAX features required by the assignment. The MySQL database name is **`project3`** (same as the project folder name).
+This project was built as **Web Technologies — Project 03**, following a shared database schema and PHP MVC structure with security, validation, and AJAX features required by the assignment. Production uses Supabase PostgreSQL.
 
 ---
 
@@ -36,7 +36,7 @@ The project combines front-end, back-end, database, and security practices taugh
 |-------|--------------------------------|
 | **PHP** | Server-side logic, session management, routing, controllers, models, views |
 | **MVC pattern** | Separation into `controllers/`, `models/`, `views/`, `config/` |
-| **PDO (MySQL)** | Database connection with prepared statements (SQL injection prevention) |
+| **PDO (PostgreSQL)** | Database connection with prepared statements (SQL injection prevention) |
 | **Sessions & cookies** | Login state, roles (`admin` / `member`), “Remember Me” (30 days), CSRF tokens |
 | **File upload** | Profile pictures and menu item images with server-side MIME (JPEG/PNG) and size checks (max 2 MB) |
 | **Password security** | `password_hash()` on register; `password_verify()` on login |
@@ -45,7 +45,7 @@ The project combines front-end, back-end, database, and security practices taugh
 
 | Topic | How it is used in this project |
 |-------|--------------------------------|
-| **MySQL** | Relational database **`project3`** |
+| **PostgreSQL** | Supabase database; see `DEPLOYMENT_GUIDE.md` |
 | **Tables** | `users`, `restaurants`, `menu_items`, `reviews`, `restaurant_reviews`, `food_experience_posts`, `food_experience_comments` |
 | **Keys & integrity** | Foreign keys, `ON DELETE CASCADE` where required, unique email on users |
 
@@ -61,30 +61,15 @@ The project combines front-end, back-end, database, and security practices taugh
 
 ---
 
-## Default User Credentials
+## Accounts
 
-After importing `database.sql`, you can log in with these demo accounts:
-
-| Role | Display Name | Email | Password |
-|------|--------------|-------|----------|
-| **Admin** | Site Admin | `admin@foodblog.local` | `Admin@123` |
-| **Member** | Demo Member | `member@foodblog.local` | `Member@123` |
-
-**Note:** Admin and member use different passwords as shown above.
-
-New **admin** or **member** accounts can also be created by a logged-in admin under **Admin → Manage users → Add admin / user**. Public registration (register page) allows choosing role **admin** or **member** for assignment demos.
+`database.pgsql.sql` installs no accounts. Public registration creates members only. After registering your own account, promote it in the Supabase SQL Editor as described in `DEPLOYMENT_GUIDE.md`. A logged-in admin can then create additional admins or members.
 
 ---
 
 ## How to Run the Project
 
-1. Install **XAMPP** and start **Apache** and **MySQL**.
-2. Copy the project folder to `htdocs` (e.g. `C:\xampp\htdocs\project3`).
-3. Import **`database.sql`** in phpMyAdmin (**Import** tab, full file) — creates database **`project3`** and seed data.
-4. Open: **http://localhost/project3/index.php**
-5. Log in with any default email and password from the table above.
-
-If the project folder name is not `project3`, update **`BASE_URL`** in `config/app.php`.
+Follow `DEPLOYMENT_GUIDE.md` for local PostgreSQL, Render and Vercel setup.
 
 **URLs:** Pages use `index.php?route=/path` (e.g. `index.php?route=/login`). Navigation links are generated automatically; you do not need `.htaccess`.
 
@@ -111,10 +96,10 @@ views/          → HTML/PHP templates (admin, auth, layouts, partials)
 includes/       → Bootstrap, Auth, Security helpers
 public/css/     → Stylesheets (base, components, responsive)
 public/js/      → Validation and AJAX scripts
-public/uploads/ → Profile and menu images (ignored by Git via .gitignore)
-database.sql    → Database schema and seed data
+public/uploads/ → Local profile and menu images (ignored by Git)
+database.pgsql.sql → Supabase schema
 index.php       → Application entry point
-.gitignore      → Excludes uploaded images from Git commits
+.gitignore      → Excludes local images and environment secrets
 ```
 
 ---
@@ -131,4 +116,4 @@ index.php       → Application entry point
 
 ---
 
-This README describes the project scenario, technologies used, and default login details for reviewers, instructors, and GitHub visitors.
+See `DEPLOYMENT_GUIDE.md` for the current database and deployment steps.

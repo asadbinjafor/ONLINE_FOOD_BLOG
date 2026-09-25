@@ -18,9 +18,9 @@ class MenuItemModel
 
     public function create(array $data): int
     {
-        $st = db()->prepare('INSERT INTO menu_items (restaurant_id, name, description, price, image_path) VALUES (?,?,?,?,?)');
+        $st = db()->prepare('INSERT INTO menu_items (restaurant_id, name, description, price, image_path) VALUES (?,?,?,?,?) RETURNING id');
         $st->execute([$data['restaurant_id'], $data['name'], $data['description'], $data['price'], $data['image_path'] ?? null]);
-        return (int) db()->lastInsertId();
+        return (int) $st->fetchColumn();
     }
 
     public function update(int $id, array $data): void

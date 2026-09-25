@@ -1,4 +1,4 @@
--- Online Food Blog — database name matches project folder: project3
+-- Legacy MySQL schema for the original coursework; production uses database.pgsql.sql.
 -- Import this whole file in phpMyAdmin (Import tab), not one query at a time.
 -- If you see "Table already exists", the DROP block below clears old tables first.
 
@@ -93,11 +93,6 @@ CREATE TABLE food_experience_comments (
     CONSTRAINT fk_fec_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Default admin (password: Admin@123) and demo member (password: Member@123)
-INSERT INTO users (name, email, password_hash, role) VALUES
-('Site Admin', 'admin@foodblog.local', '$2y$12$ViGxmPjpNbjvRczcJSURF.6rGVzjICYNkz9jr2JZ/TLaOmZdCnvxW', 'admin'),
-('Demo Member', 'member@foodblog.local', '$2y$12$sCBP0Zyix4P/F/HwxTu.FenUX9ouohLlXk2OQj0qHGakaj.OpVM5i', 'member');
-
 INSERT INTO restaurants (name, location, area, short_background, goals) VALUES
 ('Spice Garden', 'Dhaka', 'Gulshan', 'Authentic Bangladeshi cuisine with family recipes since 1998.', 'Celebrate local flavors and seasonal ingredients.'),
 ('Pasta Bella', 'Dhaka', 'Banani', 'Italian trattoria serving handmade pasta and wood-fired pizzas.', 'Bring classic Italian comfort food to the city.'),
@@ -110,6 +105,3 @@ INSERT INTO menu_items (restaurant_id, name, description, price) VALUES
 (2, 'Margherita Pizza', 'Stone-baked pizza with fresh mozzarella and basil.', 520.00),
 (3, 'Salmon Nigiri Set', 'Six pieces of fresh salmon nigiri with wasabi.', 890.00),
 (3, 'Dragon Roll', 'Tempura shrimp roll topped with avocado and eel sauce.', 720.00);
-
-INSERT INTO food_experience_posts (user_id, title, content, post_type, restaurant_id, menu_item_id) VALUES
-(2, 'First bite at Spice Garden', 'The kacchi biryani was perfectly layered — tender meat and fragrant rice. A must-try for anyone new to Dhaka food scene.', 'both', 1, 1);

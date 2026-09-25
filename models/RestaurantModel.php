@@ -14,7 +14,7 @@ class RestaurantModel
             $params[] = $area;
         }
         if ($q) {
-            $sql .= ' AND (name LIKE ? OR short_background LIKE ?)';
+            $sql .= ' AND (name ILIKE ? OR short_background ILIKE ?)';
             $like = '%' . $q . '%';
             $params[] = $like;
             $params[] = $like;
@@ -35,9 +35,9 @@ class RestaurantModel
 
     public function create(array $data): int
     {
-        $st = db()->prepare('INSERT INTO restaurants (name, location, area, short_background, goals) VALUES (?,?,?,?,?)');
+        $st = db()->prepare('INSERT INTO restaurants (name, location, area, short_background, goals) VALUES (?,?,?,?,?) RETURNING id');
         $st->execute([$data['name'], $data['location'], $data['area'], $data['short_background'], $data['goals']]);
-        return (int) db()->lastInsertId();
+        return (int) $st->fetchColumn();
     }
 
     public function update(int $id, array $data): void
@@ -86,7 +86,7 @@ class RestaurantModel
             $params[] = $area;
         }
         if ($q) {
-            $itemSql .= ' AND (m.name LIKE ? OR m.description LIKE ? OR r.name LIKE ?)';
+            $itemSql .= ' AND (m.name ILIKE ? OR m.description ILIKE ? OR r.name ILIKE ?)';
             $like = '%' . $q . '%';
             $params[] = $like;
             $params[] = $like;

@@ -6,7 +6,8 @@ class Security
         if (session_status() === PHP_SESSION_ACTIVE) {
             return;
         }
-        $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+        $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
@@ -99,10 +100,43 @@ class Security
         if (self::validateImageUpload($file) !== null) {
             return null;
         }
+        if (getenv('RENDER') && !STORAGE_ENABLED) {
+            error_log('Supabase Storage is not configured.');
+            return null;
+        }
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($file['tmp_name']);
         $ext = $mime === 'image/png' ? 'png' : 'jpg';
         $name = $prefix . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
+        if (STORAGE_ENABLED) {
+            $folder = $dir === PROFILE_UPLOAD_DIR ? 'profiles' : 'menu';
+            $url = SUPABASE_URL . '/storage/v1/object/' . rawurlencode(SUPABASE_STORAGE_BUCKET) . '/' . $folder . '/' . $name;
+            $body = file_get_contents($file['tmp_name']);
+            if ($body === false) {
+                return null;
+            }
+            $curl = curl_init($url);
+            curl_setopt_array($curl, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $body,
+                CURLOPT_HTTPHEADER => [
+                    'Authorization: Bearer ' . SUPABASE_SERVICE_ROLE_KEY,
+                    'apikey: ' . SUPABASE_SERVICE_ROLE_KEY,
+                    'Content-Type: ' . $mime,
+                    'Content-Length: ' . strlen($body),
+                ],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 20,
+            ]);
+            $result = curl_exec($curl);
+            $status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+            curl_close($curl);
+            if ($result === false || $status < 200 || $status >= 300) {
+                error_log('Storage upload failed with HTTP ' . $status);
+                return null;
+            }
+            return $name;
+        }
         $path = rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . $name;
         return move_uploaded_file($file['tmp_name'], $path) ? $name : null;
     }

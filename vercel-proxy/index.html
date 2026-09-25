@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Starting Online Food Blog</title>
+  <style>
+    body { font: 16px system-ui, sans-serif; background: #fff8f0; color: #3d2314; margin: 0; display: grid; min-height: 100vh; place-items: center; }
+    main { max-width: 440px; padding: 32px; text-align: center; }
+    button { background: #a33d20; color: white; border: 0; border-radius: 6px; padding: 10px 20px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Starting Online Food Blog</h1>
+    <p id="status" role="status" aria-live="polite">Connecting to the server…</p>
+    <button id="retry" type="button">Retry now</button>
+  </main>
+  <script>
+    const status = document.getElementById('status');
+    const retry = document.getElementById('retry');
+    let timer;
+    let running = false;
+    let consecutive = 0;
+
+    async function check(url) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      try {
+        const response = await fetch(url, { cache: 'no-store', signal: controller.signal });
+        return response.status === 200;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    async function probe() {
+      if (running) return;
+      running = true;
+      clearTimeout(timer);
+      status.textContent = 'Connecting to the server…';
+      try {
+        if (await check('/health.php') && await check('/index.php')) {
+          consecutive++;
+          if (consecutive >= 2) {
+            status.textContent = 'Connected. Opening the blog…';
+            location.replace('/index.php');
+            return;
+          }
+          status.textContent = 'Server is responding. Confirming connection…';
+        } else {
+          consecutive = 0;
+          status.textContent = 'Server is waking up. Retrying in 5 seconds…';
+        }
+      } catch (_) {
+        consecutive = 0;
+        status.textContent = 'Connection unavailable. Retrying in 5 seconds…';
+      } finally {
+        running = false;
+        timer = setTimeout(probe, 5000);
+      }
+    }
+
+    retry.addEventListener('click', probe);
+    probe();
+  </script>
+</body>
+</html>

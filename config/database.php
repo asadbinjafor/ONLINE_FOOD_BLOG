@@ -6,53 +6,38 @@ function db(): PDO
         return $pdo;
     }
 
-    $host = defined('DB_HOST') ? DB_HOST : '127.0.0.1';
-    $port = defined('DB_PORT') ? DB_PORT : '3306';
-    $name = defined('DB_NAME') ? DB_NAME : 'project3';
-    $user = defined('DB_USER') ? DB_USER : 'root';
-    $pass = defined('DB_PASS') ? DB_PASS : '';
-
-    $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
+    $url = getenv('DATABASE_URL');
+    if ($url) {
+        $parts = parse_url($url);
+        if ($parts === false || !isset($parts['host'], $parts['path'])) {
+            throw new RuntimeException('Invalid DATABASE_URL');
+        }
+        $host = $parts['host'];
+        $port = $parts['port'] ?? 5432;
+        $name = ltrim($parts['path'], '/');
+        $user = rawurldecode($parts['user'] ?? '');
+        $pass = rawurldecode($parts['pass'] ?? '');
+        parse_str($parts['query'] ?? '', $options);
+        $sslmode = $options['sslmode'] ?? (getenv('DB_SSLMODE') ?: 'require');
+    } else {
+        $host = getenv('DB_HOST') ?: '127.0.0.1';
+        $port = getenv('DB_PORT') ?: '5432';
+        $name = getenv('DB_NAME') ?: 'project3';
+        $user = getenv('DB_USER') ?: 'postgres';
+        $pass = getenv('DB_PASSWORD') ?: '';
+        $sslmode = getenv('DB_SSLMODE') ?: 'prefer';
+    }
+    $dsn = "pgsql:host={$host};port={$port};dbname={$name};sslmode={$sslmode}";
 
     try {
         $pdo = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
         ]);
     } catch (PDOException $e) {
-        $isRefused = str_contains($e->getMessage(), '2002') || str_contains($e->getMessage(), 'actively refused');
-        if ($isRefused) {
-            dbConnectionError(
-                'MySQL is not running',
-                '<p><strong>Fix:</strong> Open <strong>XAMPP Control Panel</strong> → start <strong>MySQL</strong>, then refresh.</p>'
-            );
-        }
-        if (str_contains($e->getMessage(), 'Unknown database')) {
-            dbConnectionError(
-                'Database not found',
-                '<p><strong>Fix:</strong> Import <code>database.sql</code> in phpMyAdmin (creates database <code>project3</code>).</p>'
-            );
-        }
-        if (str_contains($e->getMessage(), 'could not find driver')) {
-            dbConnectionError(
-                'PHP MySQL driver missing',
-                '<p>Enable <code>extension=pdo_mysql</code> in php.ini and restart Apache.</p>'
-            );
-        }
-        dbConnectionError('Database connection failed', '<p>' . htmlspecialchars($e->getMessage(), ENT_QUOTES) . '</p>');
+        error_log('Database connection failed: ' . $e->getMessage());
+        throw new RuntimeException('Database connection unavailable.', 0, $e);
     }
-
     return $pdo;
-}
-
-function dbConnectionError(string $title, string $body): void
-{
-    http_response_code(503);
-    header('Content-Type: text/html; charset=utf-8');
-    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>'
-        . htmlspecialchars($title, ENT_QUOTES) . '</title>'
-        . '<style>body{font-family:system-ui,sans-serif;max-width:520px;margin:48px auto;padding:24px;background:#fff8f0;color:#3d2314}'
-        . 'h1{color:#c0392b}</style></head><body><h1>'
-        . htmlspecialchars($title, ENT_QUOTES) . '</h1>' . $body . '</body></html>';
-    exit;
 }

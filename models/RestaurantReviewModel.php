@@ -18,9 +18,9 @@ class RestaurantReviewModel
 
     public function create(int $restaurantId, int $userId, string $comment, int $rating): int
     {
-        $st = db()->prepare('INSERT INTO restaurant_reviews (restaurant_id, user_id, comment, rating) VALUES (?,?,?,?)');
+        $st = db()->prepare('INSERT INTO restaurant_reviews (restaurant_id, user_id, comment, rating) VALUES (?,?,?,?) RETURNING id');
         $st->execute([$restaurantId, $userId, $comment, $rating]);
-        return (int) db()->lastInsertId();
+        return (int) $st->fetchColumn();
     }
 
     public function delete(int $id, ?int $userId = null): bool

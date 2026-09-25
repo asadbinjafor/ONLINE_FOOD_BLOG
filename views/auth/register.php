@@ -13,13 +13,6 @@
             <?php if (!empty($errors['email'])): ?><span class="field-error"><?= Security::e($errors['email']) ?></span><?php endif; ?>
         </div>
         <div class="field">
-            <label for="role">Role</label>
-            <select id="role" name="role">
-                <option value="member" <?= ($old['role'] ?? '') === 'member' ? 'selected' : '' ?>>Member</option>
-                <option value="admin" <?= ($old['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
-            </select>
-        </div>
-        <div class="field">
             <label for="password">Password (min 8 chars)</label>
             <input type="password" id="password" name="password" required minlength="8">
             <?php if (!empty($errors['password'])): ?><span class="field-error"><?= Security::e($errors['password']) ?></span><?php endif; ?>

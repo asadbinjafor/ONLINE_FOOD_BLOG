@@ -17,6 +17,7 @@ class Auth
 
     public static function login(array $user): void
     {
+        session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['name'] = $user['name'];
         $_SESSION['role'] = $user['role'];
@@ -44,6 +45,7 @@ class Auth
             'path' => '/',
             'httponly' => true,
             'samesite' => 'Strict',
+            'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https',
         ]);
     }
 
@@ -54,12 +56,13 @@ class Auth
             'path' => '/',
             'httponly' => true,
             'samesite' => 'Strict',
+            'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https',
         ]);
     }
 
     public static function tryRememberLogin(): void
     {
-        if (!empty($_SESSION['user_id']) || empty($_COOKIE['remember_me'])) {
+        if (REMEMBER_SECRET === '' || !empty($_SESSION['user_id']) || empty($_COOKIE['remember_me'])) {
             return;
         }
         $parts = explode(':', $_COOKIE['remember_me'], 2);

@@ -32,9 +32,9 @@ class UserModel
 
     public function create(string $name, string $email, string $passwordHash, string $role): int
     {
-        $st = db()->prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?,?,?,?)');
+        $st = db()->prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?,?,?,?) RETURNING id');
         $st->execute([$name, $email, $passwordHash, $role]);
-        return (int) db()->lastInsertId();
+        return (int) $st->fetchColumn();
     }
 
     public function updateProfile(int $id, string $name, string $email, ?string $picture): void

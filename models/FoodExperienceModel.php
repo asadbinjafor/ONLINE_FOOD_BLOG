@@ -22,7 +22,7 @@ class FoodExperienceModel
 
     public function createPost(array $data): int
     {
-        $st = db()->prepare('INSERT INTO food_experience_posts (user_id, title, content, post_type, restaurant_id, menu_item_id) VALUES (?,?,?,?,?,?)');
+        $st = db()->prepare('INSERT INTO food_experience_posts (user_id, title, content, post_type, restaurant_id, menu_item_id) VALUES (?,?,?,?,?,?) RETURNING id');
         $st->execute([
             $data['user_id'],
             $data['title'],
@@ -31,7 +31,7 @@ class FoodExperienceModel
             $data['restaurant_id'] ?: null,
             $data['menu_item_id'] ?: null,
         ]);
-        return (int) db()->lastInsertId();
+        return (int) $st->fetchColumn();
     }
 
     public function updatePost(int $id, array $data): void
@@ -62,9 +62,9 @@ class FoodExperienceModel
 
     public function addComment(int $postId, int $userId, string $comment): int
     {
-        $st = db()->prepare('INSERT INTO food_experience_comments (post_id, user_id, comment) VALUES (?,?,?)');
+        $st = db()->prepare('INSERT INTO food_experience_comments (post_id, user_id, comment) VALUES (?,?,?) RETURNING id');
         $st->execute([$postId, $userId, $comment]);
-        return (int) db()->lastInsertId();
+        return (int) $st->fetchColumn();
     }
 
     public function findComment(int $id): ?array
